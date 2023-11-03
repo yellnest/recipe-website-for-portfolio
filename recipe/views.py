@@ -7,6 +7,7 @@ from .models import *
 from .permission import IsAdminUserOrReadOnly
 from .serializer import RecipeSerializer, IngredientSerializer, RecipeIngredientSerializer, RatingSerializer, \
     RecipeFavoriteSerializer, RegisterSerializer, UserSerializer, CommentSerializer
+from .utils import DataMixin
 
 
 class RecipeViewSet(ModelViewSet):
@@ -45,22 +46,16 @@ class RecipeIngredientViewSet(ModelViewSet):
     permission_classes = (permissions.IsAdminUser,)
 
 
-class RatingView(generics.ListCreateAPIView):
+class RatingView(DataMixin, generics.ListCreateAPIView):
     """Вывод списка ретинга
     """
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     filter_fields = ('value',)
 
     def get_queryset(self):
-        recipe_slug = self.kwargs['recipe_slug'].lower()
-        recipe = Recipe.objects.get(slug=recipe_slug)
-        return Rating.objects.filter(recipe=recipe)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return Rating.objects.filter(recipe=self.get_recipe_queryset())
 
 
 class RecipeFavoriteViewSet(ModelViewSet):
@@ -86,15 +81,10 @@ class RegisterView(generics.GenericAPIView):
         })
 
 
-class CommentView(generics.ListCreateAPIView):
+class CommentView(DataMixin, generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
-        recipe_slug = self.kwargs['recipe_slug'].lower()
-        recipe = Recipe.objects.get(slug=recipe_slug)
-        return Comment.objects.filter(recipe=recipe)
+        return Comment.objects.filter(recipe=self.get_recipe_queryset())
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
