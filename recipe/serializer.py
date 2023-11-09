@@ -104,7 +104,7 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     recipe = serializers.SlugRelatedField(slug_field='slug', queryset=Recipe.objects.all())
     user = serializers.SlugRelatedField(
-        slug_field="username",
+        slug_field='username',
         queryset=User.objects.all(),
         default=serializers.CurrentUserDefault()
     )

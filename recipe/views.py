@@ -7,7 +7,7 @@ from .models import *
 from .permission import IsAdminUserOrReadOnly
 from .serializer import RecipeSerializer, IngredientSerializer, RecipeIngredientSerializer, RatingSerializer, \
     RecipeFavoriteSerializer, RegisterSerializer, UserSerializer, CommentSerializer
-from .utils import DataMixin
+from .utils import GetQuerySetMixin, PermissionMixin
 
 
 class RecipeViewSet(ModelViewSet):
@@ -24,7 +24,7 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (IsAdminUserOrReadOnly,)
 
 
-class IngredientViewSet(ModelViewSet):
+class IngredientViewSet(PermissionMixin, ModelViewSet):
     """Вывод списка ингредиентов
     """
     queryset = Ingredient.objects.all()
@@ -34,19 +34,15 @@ class IngredientViewSet(ModelViewSet):
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
 
-    permission_classes = (permissions.IsAdminUser,)
 
-
-class RecipeIngredientViewSet(ModelViewSet):
+class RecipeIngredientViewSet(PermissionMixin, ModelViewSet):
     """Добавление описания о количестве ингредиента к рецепту
     """
     queryset = RecipeIngredient.objects.all()
     serializer_class = RecipeIngredientSerializer
 
-    permission_classes = (permissions.IsAdminUser,)
 
-
-class RatingView(DataMixin, generics.ListCreateAPIView):
+class RatingView(GetQuerySetMixin, generics.ListCreateAPIView):
     """Вывод списка ретинга
     """
     queryset = Rating.objects.all()
@@ -55,7 +51,7 @@ class RatingView(DataMixin, generics.ListCreateAPIView):
     filter_fields = ('value',)
 
     def get_queryset(self):
-        return Rating.objects.filter(recipe=self.get_recipe_queryset())
+        return Rating.objects.filter(recipe=self.get_recipe_slug())
 
 
 class RecipeFavoriteViewSet(ModelViewSet):
@@ -81,10 +77,10 @@ class RegisterView(generics.GenericAPIView):
         })
 
 
-class CommentView(DataMixin, generics.ListCreateAPIView):
+class CommentView(GetQuerySetMixin, generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
     def get_queryset(self):
-        return Comment.objects.filter(recipe=self.get_recipe_queryset())
+        return Comment.objects.filter(recipe=self.get_recipe_slug())
 
