@@ -59,6 +59,13 @@ class RecipeFavoriteViewSet(ModelViewSet):
     """
     queryset = RecipeFavorite.objects.all()
     serializer_class = RecipeFavoriteSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        return self.request.user.favorite_recipes.all()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class RegisterView(generics.GenericAPIView):

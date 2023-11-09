@@ -62,10 +62,20 @@ class RatingSerializer(serializers.ModelSerializer):
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
     """ Serializer избранного
     """
+    user = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all(),
+        default=serializers.CurrentUserDefault()
+    )
 
     class Meta:
         model = RecipeFavorite
         fields = '__all__'
+
+    def to_representation(self, instance):
+        rep = super(RecipeFavoriteSerializer, self).to_representation(instance)
+        rep['recipe'] = instance.recipe.name
+        return rep
 
 
 class RegisterSerializer(serializers.ModelSerializer):
